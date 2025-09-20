@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## 📁 Models đã tạo
 
-## Getting Started
+### 1. **User.ts**
 
-First, run the development server:
+- Quản lý người dùng
+- Authentication (local, google)
+- Preferences (language, dietary)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### 2. **Pantry.ts**
+
+- Quản lý nguyên liệu trong bếp
+- Categories: vegetables, fruits, meat, dairy, grains, spices, other
+- Tracking expiry date
+
+### 3. **Recipe.ts**
+
+- Công thức nấu ăn
+- Ingredients và steps
+- Rating system
+- Categories: appetizer, main-course, dessert, beverage, snack
+
+### 4. **ShoppingList.ts**
+
+- Danh sách mua sắm
+- Items với quantity và unit
+- Status: draft, active, completed
+
+### 5. **MealPlan.ts**
+
+- Kế hoạch ăn uống
+- Day plans với meals
+- Status: draft, active, completed
+
+### 6. **Community.ts**
+
+- Posts cộng đồng
+- Comments và likes
+- Categories: recipe-share, cooking-tip, food-photo, question
+
+### 7. **Favorite.ts**
+
+- Công thức yêu thích
+- Categories: favorites, to-cook, cooked
+- Rating system
+
+## 🚀 Cách sử dụng
+
+```typescript
+import { User, Pantry, Recipe } from '@/models'
+import connectDB from '@/lib/database'
+
+// Connect to database
+await connectDB()
+
+// Create user
+const user = new User({
+  email: 'user@example.com',
+  name: 'John Doe',
+  authType: 'google',
+})
+
+// Find recipes
+const recipes = await Recipe.find({ isPublic: true }).populate('author', 'name avatar')
+
+// Get user's pantry
+const pantry = await Pantry.find({ userId: userId })
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🔗 Relationships
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- User → Pantry (1:N)
+- User → Recipe (1:N)
+- User → ShoppingList (1:N)
+- User → MealPlan (1:N)
+- User → Post (1:N)
+- User → Favorite (1:N)
+- Recipe → Post (1:N)
+- Recipe → Favorite (1:N)
+- Recipe → MealPlan (N:N)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📊 Features
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- ✅ Timestamps (createdAt, updatedAt)
+- ✅ References với populate
+- ✅ Validation
+- ✅ Indexes cho performance
+- ✅ Simple và dễ hiểu
