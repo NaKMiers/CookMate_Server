@@ -1,55 +1,48 @@
-import mongoose from 'mongoose'
+import mongoose, { Connection } from 'mongoose'
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/cookmate'
+let cachedConnection: Connection | null = null
 
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable inside .env.local')
-}
-
-/**
- * Global is used here to maintain a cached connection across hot reloads
- * in development. This prevents connections growing exponentially
- * during API Route usage.
- */
-let cached = global.mongoose
-
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null }
-}
-
-async function connectDB() {
-  if (cached.conn) {
-    return cached.conn
-  }
-
-  if (!cached.promise) {
-    const opts = {
-      bufferCommands: false,
-    }
-
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then(mongoose => {
-      console.log('✅ Connected to MongoDB')
-      return mongoose
-    })
+export async function connectDatabase() {
+  if (cachedConnection) {
+    console.log('Returning cached database connection')
+    return cachedConnection
   }
 
   try {
-    cached.conn = await cached.promise
-  } catch (e) {
-    cached.promise = null
-    throw e
-  }
+    await mongoose.connect(process.env.MONGODB_URI!)
+    const connection = mongoose.connection
 
-  return cached.conn
+    connection.on('connected', () => {
+      console.log('MongoDB connected successfully')
+    })
+
+    connection.on('error', error => {
+      console.log(
+        'MongoDB connection error. Please make sure MongoDB is running. ' +
+          error
+      )
+    })
+
+    cachedConnection = connection
+    return connection
+  } catch (error) {
+    console.log('Something goes wrong!')
+    console.log(error)
+    throw new Error('Unable to connect to database')
+  }
 }
 
-export default connectDB
+export async function disconnectDatabase() {
+  if (!cachedConnection) {
+    console.log('No active connection to disconnect.')
+    return
+  }
 
-// Extend the global object to include mongoose
-declare global {
-  var mongoose: {
-    conn: typeof mongoose | null
-    promise: Promise<typeof mongoose> | null
+  try {
+    await mongoose.disconnect()
+    cachedConnection = null
+    console.log('MongoDB disconnected successfully')
+  } catch (error) {
+    console.log('Error while disconnecting from MongoDB:', error)
   }
 }
-

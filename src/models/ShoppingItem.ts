@@ -2,20 +2,15 @@ import mongoose from 'mongoose'
 
 const Schema = mongoose.Schema
 
-const ShoppingListItemSchema = new Schema(
+const ShoppingItemSchema = new Schema(
   {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+      required: true,
+    },
     name: {
       type: String,
-      required: true,
-    },
-    quantity: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-    unit: {
-      type: String,
-      enum: ['g', 'kg', 'ml', 'l', 'piece', 'cup', 'tbsp', 'tsp'],
       required: true,
     },
     status: {
@@ -30,21 +25,20 @@ const ShoppingListItemSchema = new Schema(
   }
 )
 
-const ShoppingListItemModel =
-  mongoose.models.shoppingItems || mongoose.model('shoppingItems', ShoppingListItemSchema)
-export default ShoppingListItemModel
+const ShoppingItemModel =
+  mongoose.models.shoppingItems ||
+  mongoose.model('shoppingItems', ShoppingItemSchema)
+export default ShoppingItemModel
 
 export interface IShoppingItem {
   _id: string
   createdAt: string
   updatedAt: string
 
+  userId: string
   name: string
-  quantity: number
-  unit: TMeasurementUnit
   status: TShoppingItemStatus
   notes?: string
 }
 
-export type TMeasurementUnit = 'g' | 'kg' | 'ml' | 'l' | 'piece' | 'cup' | 'tbsp' | 'tsp'
 export type TShoppingItemStatus = 'draft' | 'active' | 'completed' | 'cancelled'

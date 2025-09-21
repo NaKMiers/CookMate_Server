@@ -9,12 +9,6 @@ const UserSchema = new Schema(
       required: true,
       unique: true,
     },
-    password: {
-      type: String,
-      required: function (this: { authType: string }) {
-        return this.authType === 'email'
-      },
-    },
     googleUserId: {
       type: String,
       required: function (this: { authType: string }) {
@@ -55,7 +49,6 @@ export interface IUser {
   updatedAt: string
 
   email: string
-  password?: string
   googleUserId?: string
   authType: TAuthType
   role: TUserRole
