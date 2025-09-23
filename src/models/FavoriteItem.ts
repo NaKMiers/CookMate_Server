@@ -32,5 +32,5 @@ export interface IFavoriteItem {
   updatedAt: string
 
   userId: string
-  recipe: string[]
+  recipe: string
 }

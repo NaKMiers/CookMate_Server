@@ -1,8 +1,8 @@
 import { generateToken } from '@/lib/auth'
 import { jsonError, jsonSuccess } from '@/lib/common'
 import { connectDatabase } from '@/lib/database'
-import { UserModel } from '@/models'
 import { NextRequest } from 'next/server'
+import UserModel from '@/models/User'
 
 // Models: User
 import '@/models/User'

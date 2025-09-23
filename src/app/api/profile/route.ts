@@ -1,8 +1,8 @@
 import { extractToken } from '@/lib/auth'
 import { jsonError, jsonSuccess } from '@/lib/common'
-import { UserModel } from '@/models'
-import { NextRequest } from 'next/server'
 import { connectDatabase } from '@/lib/database'
+import UserModel from '@/models/User'
+import { NextRequest } from 'next/server'
 
 // Models: User
 import '@/models/User'
@@ -40,12 +40,12 @@ export async function PUT(req: NextRequest) {
     await connectDatabase()
 
     const { name, avatar, dietaryPreferences } = await req.json()
-    if (!name || !avatar || !dietaryPreferences)
+    if (![name, avatar, dietaryPreferences].some(Boolean))
       return jsonError('Invalid request', 400)
 
     const user = await UserModel.findByIdAndUpdate(
       userId,
-      { name, avatar, dietaryPreferences },
+      { name: name.trim(), avatar, dietaryPreferences },
       { new: true }
     )
     if (!user) return jsonError('User not found', 404)

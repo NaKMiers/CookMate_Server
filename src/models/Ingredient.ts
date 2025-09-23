@@ -13,7 +13,7 @@ const IngredientSchema = new Schema(
       type: String,
       required: true,
     },
-    category: {
+    categoryId: {
       type: Schema.Types.ObjectId,
       ref: 'ingredientCategory',
       required: true,
@@ -48,7 +48,7 @@ export interface IIngredient {
 
   userId: string
   name: string
-  category: string
+  categoryId: string
   quantity: number
   unit: TMeasurementUnit
   expiryDate?: Date
@@ -56,14 +56,6 @@ export interface IIngredient {
   notes?: string
 }
 
-export type TIngredientCategory =
-  | 'vegetables'
-  | 'fruits'
-  | 'meat'
-  | 'dairy'
-  | 'grains'
-  | 'spices'
-  | 'other'
 export type TMeasurementUnit =
   | 'g'
   | 'kg'

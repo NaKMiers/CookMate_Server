@@ -4,13 +4,21 @@ const Schema = mongoose.Schema
 
 const IngredientCategorySchema = new Schema(
   {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+      required: true,
+    },
     name: {
       type: String,
       required: true,
     },
+    icon: { type: String },
   },
   { timestamps: true }
 )
+
+IngredientCategorySchema.index({ userId: 1, name: 1 }, { unique: true })
 
 const IngredientCategoryModel =
   mongoose.models.ingredientCategory ||
@@ -22,5 +30,7 @@ export interface IIngredientCategory {
   createdAt: string
   updatedAt: string
 
+  userId: string
   name: string
+  icon?: string
 }

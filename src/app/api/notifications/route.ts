@@ -41,8 +41,8 @@ export async function PATCH(req: NextRequest) {
     await connectDatabase()
 
     const { id: notificationId, value } = await req.json()
-    if (!notificationId || value === undefined)
-      return jsonError('Notification ID and value are required', 400)
+    if (![notificationId, value].some(Boolean))
+      return jsonError('Missing required fields', 400)
 
     if (notificationId === 'all') {
       await NotificationModel.updateMany({ userId }, { isRead: value })
@@ -74,7 +74,7 @@ export async function DELETE(req: NextRequest) {
     await connectDatabase()
 
     const { id: notificationId } = await req.json()
-    if (!notificationId) return jsonError('Notification ID is required', 400)
+    if (!notificationId) return jsonError('Missing required fields', 400)
 
     if (notificationId === 'all') {
       await NotificationModel.deleteMany({ userId })

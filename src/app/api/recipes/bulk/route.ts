@@ -2,8 +2,8 @@ import { NextRequest } from 'next/server'
 import { jsonError, jsonSuccess } from '@/lib/common'
 import { getRecipesByIds } from '@/lib/spoonacular'
 
-// MARK: [POST]: /api/recipes/bulk
-export async function POST(req: NextRequest) {
+// MARK: [GET]: /api/recipes/bulk
+export async function GET(req: NextRequest) {
   console.log('- Get Recipes by IDs -')
 
   try {
@@ -29,43 +29,6 @@ export async function POST(req: NextRequest) {
     })
 
     const result = await getRecipesByIds(numericIds)
-
-    return jsonSuccess({
-      message: 'Recipes retrieved successfully',
-      ...result,
-    })
-  } catch (error: any) {
-    console.error('Bulk recipes error:', error)
-    return jsonError(error.message || 'Failed to get recipes', 400)
-  }
-}
-
-// MARK: [GET]: /api/recipes/bulk
-export async function GET(req: NextRequest) {
-  console.log('- Get Recipes by IDs (GET) -')
-
-  try {
-    const { searchParams } = new URL(req.url)
-    const idsParam = searchParams.get('ids')
-
-    if (!idsParam) {
-      return jsonError('Recipe IDs are required (comma-separated)', 400)
-    }
-
-    // Parse comma-separated IDs
-    const recipeIds = idsParam.split(',').map(id => {
-      const numId = parseInt(id.trim())
-      if (isNaN(numId)) {
-        throw new Error(`Invalid recipe ID: ${id}`)
-      }
-      return numId
-    })
-
-    if (recipeIds.length === 0) {
-      return jsonError('At least one recipe ID is required', 400)
-    }
-
-    const result = await getRecipesByIds(recipeIds)
 
     return jsonSuccess({
       message: 'Recipes retrieved successfully',
