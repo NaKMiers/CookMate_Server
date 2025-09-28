@@ -45,7 +45,7 @@ const requireAuth = async (
   token: JWT | JWTPayload | null,
   isApi: boolean
 ) => {
-  console.log('- Require Auth -')
+  console.log('- Require Auth -', token)
   return !token
     ? isApi
       ? NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

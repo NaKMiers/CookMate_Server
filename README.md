@@ -74,11 +74,10 @@ npm run dev
 
 ## 📚 API Documentation
 
-### Base URL
+### Base URLs
 
-```
-http://localhost:3000/api
-```
+- **Development:** `http://localhost:3000`
+- **Production:** `https://cookm8.vercel.app`
 
 ### Authentication
 
@@ -87,6 +86,91 @@ API uses JWT (JSON Web Token) for authentication. Token is sent in the header:
 ```
 Authorization: Bearer <your-jwt-token>
 ```
+
+### 🔥 Swagger Documentation
+
+We provide comprehensive API documentation using OpenAPI 3.0 (Swagger) specification.
+
+#### 📖 View Swagger Documentation
+
+**1. Online Swagger Editor:**
+
+- Visit: https://editor.swagger.io/
+- Copy content from `swagger.yaml` and paste into the editor
+
+**2. Local Swagger UI:**
+
+```bash
+# Install swagger-ui-serve globally
+npm install -g swagger-ui-serve
+
+# Serve Swagger UI locally
+swagger-ui-serve swagger.yaml
+```
+
+**3. VS Code Extension:**
+
+- Install "Swagger Viewer" extension
+- Open `swagger.yaml` file
+- Press `Ctrl+Shift+P` → "Swagger: Preview"
+
+**4. Import into Postman:**
+
+- Open Postman
+- Import → Link → Paste URL of swagger.yaml
+- Or import `swagger.yaml` file directly
+
+#### 🚀 Quick API Testing
+
+**Get JWT Token (Google Auth):**
+
+```bash
+curl -X POST http://localhost:3000/api/auth/google \
+  -H "Content-Type: application/json" \
+  -d '{
+    "googleUserId": "123456789",
+    "email": "user@example.com",
+    "name": "John Doe",
+    "avatar": "https://example.com/avatar.jpg"
+  }'
+```
+
+**Use Token in Requests:**
+
+```bash
+# Get user ingredients
+curl -X GET http://localhost:3000/api/ingredients \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
+
+# Add favorite recipe
+curl -X POST http://localhost:3000/api/favorites \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE" \
+  -H "Content-Type: application/json" \
+  -d '{"recipeId": "12345"}'
+```
+
+#### 📝 Swagger Features
+
+✅ **Complete API Documentation** - All endpoints documented  
+✅ **Interactive Testing Interface** - Test APIs directly in browser  
+✅ **Request/Response Examples** - Real examples for all endpoints  
+✅ **Authentication Examples** - JWT token usage examples  
+✅ **Error Handling Documentation** - All error responses documented  
+✅ **Schema Definitions** - Complete data models  
+✅ **Multiple Server Environments** - Dev and production URLs
+
+#### 🎯 Postman Integration
+
+1. **Import Swagger into Postman:**
+   - File → Import → Upload Files → Select `swagger.yaml`
+
+2. **Set up Environment Variables:**
+   - `base_url`: `http://localhost:3000` (dev) or `https://cookm8.vercel.app` (prod)
+   - `token`: Your JWT token from Google Auth
+
+3. **Use Variables in Requests:**
+   - URL: `{{base_url}}/api/endpoint`
+   - Authorization: `Bearer {{token}}`
 
 ## 🎯 Features & Endpoints
 
@@ -152,28 +236,91 @@ Authorization: Bearer <your-jwt-token>
 
 ## 🧪 Testing
 
+### 🔥 Swagger UI Testing (Recommended)
+
+**1. Open Swagger UI:**
+
+```bash
+# Install and run Swagger UI locally
+npm install -g swagger-ui-serve
+swagger-ui-serve swagger.yaml
+```
+
+**2. Test Authentication:**
+
+- Use `/api/auth/google` endpoint to get JWT token
+- Click "Authorize" button in Swagger UI
+- Enter: `Bearer YOUR_JWT_TOKEN`
+
+**3. Test All Endpoints:**
+
+- All endpoints are documented with examples
+- Click "Try it out" to test directly in browser
+- View request/response examples
+
 ### Testing with Postman
+
+**Option 1: Import Swagger Collection**
+
+1. Import `swagger.yaml` file into Postman
+2. Set environment variables:
+   - `base_url`: `http://localhost:3000` (dev) or `https://cookm8.vercel.app` (prod)
+   - `token`: JWT token from Google Auth
+3. Use `{{base_url}}` and `{{token}}` in requests
+
+**Option 2: Manual Collection**
 
 1. Import file `CookMate_API_Collection.postman_collection.json` into Postman
 2. Set environment variables:
    - `base_url`: `http://localhost:3000/api`
    - `jwt_token`: Token received after login
 3. Test endpoints in order:
-   - Register/Login to get token
+   - Google Auth to get token
    - Test other endpoints with token
 
-### Example Usage
+### 🚀 Quick Test Examples
+
+**1. Test API Welcome:**
 
 ```bash
-# Search recipes by ingredients
-GET /api/recipes/search?ingredients=tomatoes,onions,garlic&number=5
-
-# Get recipe details
-GET /api/recipes/716429
-
-# Get suggestions based on pantry
-GET /api/suggestions?number=5&ranking=1
+curl -X GET http://localhost:3000/api
 ```
+
+**2. Test Google Authentication:**
+
+```bash
+curl -X POST http://localhost:3000/api/auth/google \
+  -H "Content-Type: application/json" \
+  -d '{
+    "googleUserId": "123456789",
+    "email": "user@example.com",
+    "name": "John Doe",
+    "avatar": "https://example.com/avatar.jpg"
+  }'
+```
+
+**3. Test Authenticated Endpoint:**
+
+```bash
+curl -X GET http://localhost:3000/api/ingredients \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**4. Test Recipe Search:**
+
+```bash
+curl -X GET "http://localhost:3000/api/recipes/search?query=pasta&number=5"
+```
+
+### 📊 Testing Checklist
+
+- [ ] API welcome endpoint works
+- [ ] Google authentication returns JWT token
+- [ ] Authenticated endpoints work with Bearer token
+- [ ] Recipe search returns results
+- [ ] CRUD operations work for all resources
+- [ ] Error handling returns proper status codes
+- [ ] File upload works (ingredient images)
 
 ## 📊 API Response Format
 
@@ -396,6 +543,48 @@ src/
 - `409` - Conflict
 - `500` - Internal Server Error
 
+## 📁 Documentation Files
+
+### Swagger/OpenAPI Files
+
+- **`swagger.yaml`** - Complete OpenAPI 3.0 specification
+- **`API_DOCUMENTATION.md`** - Detailed API usage guide
+
+### How to Use Documentation
+
+1. **View Swagger UI:**
+
+   ```bash
+   npm install -g swagger-ui-serve
+   swagger-ui-serve swagger.yaml
+   ```
+
+2. **Import into Postman:**
+   - Import `swagger.yaml` file
+   - Set environment variables
+   - Start testing APIs
+
+3. **Read Documentation:**
+   - Open `API_DOCUMENTATION.md` for detailed guides
+   - Follow examples and best practices
+
+### 📚 Documentation Features
+
+✅ **Complete API Coverage** - All endpoints documented  
+✅ **Interactive Testing** - Test APIs in Swagger UI  
+✅ **Request/Response Examples** - Real examples provided  
+✅ **Authentication Guide** - JWT token usage  
+✅ **Error Handling** - All error responses documented  
+✅ **Schema Definitions** - Complete data models  
+✅ **Multiple Environments** - Dev and production URLs
+
 ---
 
 **API is ready for development and testing!** 🎉
+
+**🔥 Try Swagger UI now:**
+
+```bash
+npm install -g swagger-ui-serve
+swagger-ui-serve swagger.yaml
+```
