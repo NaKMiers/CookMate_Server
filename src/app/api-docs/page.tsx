@@ -20,6 +20,8 @@ const SwaggerUI = dynamic(() => import('swagger-ui-react'), {
 import 'swagger-ui-react/swagger-ui.css'
 
 export default function ApiDocsPage() {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
   return (
     <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-8">
@@ -31,6 +33,10 @@ export default function ApiDocsPage() {
             Interactive API documentation for CookMate server. Test endpoints
             directly from this page.
           </p>
+          <div className="mt-2 text-sm text-gray-500">
+            <strong>Base URL:</strong>{' '}
+            <code className="rounded bg-gray-100 px-1">{baseUrl}</code>
+          </div>
           <div className="mt-4 rounded-lg bg-blue-50 p-4">
             <h3 className="mb-2 font-semibold text-blue-900">
               🚀 Quick Start:
@@ -39,7 +45,7 @@ export default function ApiDocsPage() {
               <li>
                 1. Use{' '}
                 <code className="rounded bg-blue-100 px-1">
-                  /api/auth/google
+                  {baseUrl}/api/auth/google
                 </code>{' '}
                 to get JWT token
               </li>
@@ -58,17 +64,9 @@ export default function ApiDocsPage() {
               <p className="text-xs text-yellow-800">
                 Most endpoints require authentication. Only{' '}
                 <code className="rounded bg-yellow-100 px-1">
-                  /api/auth/google
-                </code>
-                ,
-                <code className="rounded bg-yellow-100 px-1">
-                  /api/recipes/search
-                </code>
-                , and
-                <code className="rounded bg-yellow-100 px-1">
-                  /api/recipes/today
+                  {baseUrl}/api/auth/google
                 </code>{' '}
-                work without authentication.
+                works without authentication.
               </p>
             </div>
           </div>
@@ -85,7 +83,7 @@ export default function ApiDocsPage() {
           }
         >
           <SwaggerUI
-            url="/swagger.yaml"
+            url={`/swagger.yaml?t=${Date.now()}`}
             deepLinking={true}
             displayOperationId={false}
             defaultModelsExpandDepth={1}
@@ -94,9 +92,8 @@ export default function ApiDocsPage() {
             supportedSubmitMethods={['get', 'post', 'put', 'delete', 'patch']}
             tryItOutEnabled={true}
             requestInterceptor={request => {
-              // Add base URL for local development
               if (request.url.startsWith('/api/')) {
-                request.url = `http://localhost:3000${request.url}`
+                request.url = `${baseUrl}${request.url}`
               }
               return request
             }}

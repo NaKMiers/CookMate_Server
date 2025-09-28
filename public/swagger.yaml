@@ -21,15 +21,18 @@ info:
     - `/api/favorites` - All CRUD operations  
     - `/api/profile` - All CRUD operations
     - `/api/shopping` - All CRUD operations
+    - `/api/recipes/search` - Recipe search
+    - `/api/recipes/today` - Today's recipes
     
     **No Authentication Required:**
     - `/api/auth/google` - Google authentication
-    - `/api/recipes/search` - Recipe search
-    - `/api/recipes/today` - Today's recipes
     
     ## Base URLs
     - Development: `http://localhost:3000`
     - Production: `https://cookm8.vercel.app`
+    
+    **Environment Variables:**
+    - `NEXT_PUBLIC_APP_URL` - Base URL for API requests
   version: 1.0.0
   contact:
     name: CookMate Team
@@ -132,8 +135,7 @@ paths:
       tags:
         - Recipes
       summary: Search Recipes
-      description: Search for recipes using various parameters
-      security: []
+      description: Search for recipes using various parameters (Requires Authentication)
       parameters:
         - name: query
           in: query
@@ -190,6 +192,8 @@ paths:
                   totalResults:
                     type: integer
                     example: 50
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '400':
           $ref: '#/components/responses/BadRequest'
         '500':
@@ -200,8 +204,7 @@ paths:
       tags:
         - Recipes
       summary: Get Today's Recipes
-      description: Get random recipes for today's meal planning
-      security: []
+      description: Get random recipes for today's meal planning (Requires Authentication)
       responses:
         '200':
           description: Today's recipes retrieved successfully
@@ -220,6 +223,8 @@ paths:
                   totalResults:
                     type: integer
                     example: 5
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '400':
           $ref: '#/components/responses/BadRequest'
         '500':
