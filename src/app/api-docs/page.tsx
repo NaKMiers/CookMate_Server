@@ -1,5 +1,6 @@
 'use client'
 
+import { environments } from '@/constants/environments'
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 
@@ -20,7 +21,7 @@ const SwaggerUI = dynamic(() => import('swagger-ui-react'), {
 import 'swagger-ui-react/swagger-ui.css'
 
 export default function ApiDocsPage() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const baseUrl = environments.NEXT_PUBLIC_APP_URL
 
   return (
     <div className="min-h-screen bg-white">

@@ -2,13 +2,12 @@ import { NextRequest } from 'next/server'
 import { jsonError, jsonSuccess } from '@/lib/common'
 import { getRecipesByIds } from '@/lib/spoonacular'
 
-// MARK: [GET]: /api/recipes/bulk
-export async function GET(req: NextRequest) {
+// MARK: [POST]: /api/recipes/bulk
+export async function POST(req: NextRequest) {
   console.log('- Get Recipes by IDs -')
 
   try {
-    const body = await req.json()
-    const { recipeIds } = body
+    const { recipeIds } = await req.json()
 
     // Validate input
     if (!recipeIds || !Array.isArray(recipeIds)) {

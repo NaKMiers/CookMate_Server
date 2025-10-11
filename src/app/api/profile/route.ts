@@ -40,8 +40,8 @@ export async function PUT(req: NextRequest) {
     await connectDatabase()
 
     const { name, avatar, dietaryPreferences } = await req.json()
-    if (![name, avatar, dietaryPreferences].some(Boolean))
-      return jsonError('Invalid request', 400)
+    if (![name, avatar, dietaryPreferences].every(Boolean))
+      return jsonError('Missing required fields', 400)
 
     const user = await UserModel.findByIdAndUpdate(
       userId,

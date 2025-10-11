@@ -2,8 +2,7 @@ import { jwtVerify } from 'jose'
 import jwt from 'jsonwebtoken'
 import { getToken } from 'next-auth/jwt'
 import { NextRequest } from 'next/server'
-
-const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET as string
+import { environments } from '@/constants/environments'
 
 export interface JWTPayload {
   userId: string
@@ -23,7 +22,7 @@ export const extractToken = async (req: NextRequest) => {
   if (token && isValidJWTFormat(token)) {
     const { payload } = await jwtVerify(
       token,
-      new TextEncoder().encode(NEXTAUTH_SECRET)
+      new TextEncoder().encode(environments.NEXTAUTH_SECRET)
     )
     if (payload) return payload
   }
@@ -31,5 +30,6 @@ export const extractToken = async (req: NextRequest) => {
 }
 
 export function generateToken(payload: JWTPayload): string {
-  return jwt.sign(payload, NEXTAUTH_SECRET, { expiresIn: '30d' })
+  // Token will never expire
+  return jwt.sign(payload, environments.NEXTAUTH_SECRET as string)
 }

@@ -7,3 +7,11 @@ export const jsonError = (
   error: string = 'Something went wrong',
   status: number = 500
 ) => NextResponse.json({ error }, { status })
+
+export const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString()
+}
+
+export const extractNameFromEmail = (email: string) => {
+  return email.split('@')[0]
+}

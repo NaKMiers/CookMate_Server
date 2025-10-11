@@ -34,6 +34,8 @@ const UserSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    otp: String,
+    otpExpiresAt: Date,
   },
   {
     timestamps: true,
@@ -56,6 +58,8 @@ export interface IUser {
   name?: string
   dietaryPreferences: string[]
   isDeleted: boolean
+  otp?: string
+  otpExpiresAt?: Date
 }
 
 export type TAuthType = 'email' | 'google'

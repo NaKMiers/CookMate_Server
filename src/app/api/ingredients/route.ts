@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     const { name, categoryId, quantity, unit, expiryDate, notes }: any =
       Object.fromEntries(data)
     const image = formData.get('image') as File
-    if (![name, categoryId, quantity, unit].some(Boolean))
+    if (![name, categoryId, quantity, unit].every(Boolean))
       return jsonError('Missing required fields', 400)
 
     // upload image
@@ -102,7 +102,7 @@ export async function PUT(req: NextRequest) {
       notes,
     }: any = Object.fromEntries(data)
     const image = formData.get('image') as File
-    if (![ingredientId, name, categoryId, quantity, unit].some(Boolean))
+    if (![ingredientId, name, categoryId, quantity, unit].every(Boolean))
       return jsonError('Missing required fields', 400)
 
     const ingredient: IIngredient | null = await IngredientModel.findOne({

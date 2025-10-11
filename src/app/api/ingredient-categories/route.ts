@@ -72,7 +72,7 @@ export async function PUT(req: NextRequest) {
     await connectDatabase()
 
     const { ingredientCategoryId, name, icon } = await req.json()
-    if (![ingredientCategoryId, name].some(Boolean))
+    if (![ingredientCategoryId, name].every(Boolean))
       return jsonError('Missing required fields', 400)
 
     const ingredientCategory = await IngredientCategoryModel.findOneAndUpdate(

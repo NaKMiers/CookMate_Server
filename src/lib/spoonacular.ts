@@ -1,9 +1,11 @@
 // Spoonacular API helper functions
 
+import { environments } from '@/constants/environments'
+
 const BASE_URL = 'https://api.spoonacular.com'
 const BASE_SEARCH_URL = `${BASE_URL}/recipes/complexSearch`
 const BASE_BULK_URL = `${BASE_URL}/recipes/informationBulk`
-const API_KEY = process.env.SPOONACULAR_API_KEY as string
+const API_KEY = environments.SPOONACULAR_API_KEY as string
 const LIMIT = 10
 
 // Build Spoonacular API URL

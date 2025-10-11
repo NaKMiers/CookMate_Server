@@ -41,7 +41,7 @@ export async function PATCH(req: NextRequest) {
     await connectDatabase()
 
     const { id: notificationId, value } = await req.json()
-    if (![notificationId, value].some(Boolean))
+    if (![notificationId, value].every(Boolean))
       return jsonError('Missing required fields', 400)
 
     if (notificationId === 'all') {

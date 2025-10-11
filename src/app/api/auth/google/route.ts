@@ -27,6 +27,8 @@ export async function POST(req: NextRequest) {
     })
 
     if (user) {
+      if (user.isDeleted) return jsonError('User is deleted', 400)
+
       // Update existing user with Google info if needed
       if (!user.googleUserId) {
         user.googleUserId = googleUserId
@@ -52,7 +54,6 @@ export async function POST(req: NextRequest) {
     })
 
     return jsonSuccess({
-      message: 'Google authentication successful',
       user: {
         id: user._id,
         email: user.email,
@@ -61,6 +62,7 @@ export async function POST(req: NextRequest) {
         dietaryPreferences: user.dietaryPreferences,
       },
       token,
+      message: 'Google authentication successful',
     })
   } catch (error) {
     console.error('Google auth error:', error)

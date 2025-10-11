@@ -5,27 +5,39 @@ info:
     CookMate API - A comprehensive cooking and recipe management platform.
     
     ## Features
-    - User authentication with Google OAuth
+    - User authentication with Google OAuth and Email OTP
     - Recipe search and management
     - Ingredient tracking and pantry management
     - Shopping list functionality
     - Favorites system
     - User profile management
+    - Meal planning
+    - Notifications system
+    - Account recovery
     
     ## Authentication
-    Most endpoints require Bearer token authentication. Get your token by calling the Google Auth endpoint.
+    Most endpoints require Bearer token authentication. Get your token by calling the authentication endpoints.
     
     **Authentication Required Endpoints:**
     - `/api` - API Welcome message
     - `/api/ingredients` - All CRUD operations
+    - `/api/ingredient-categories` - All CRUD operations
     - `/api/favorites` - All CRUD operations  
     - `/api/profile` - All CRUD operations
+    - `/api/profile/delete` - Delete account
     - `/api/shopping` - All CRUD operations
     - `/api/recipes/search` - Recipe search
     - `/api/recipes/today` - Today's recipes
+    - `/api/recipes/bulk` - Get recipes by IDs
+    - `/api/meal-plans` - All CRUD operations
+    - `/api/notifications` - All CRUD operations
     
     **No Authentication Required:**
     - `/api/auth/google` - Google authentication
+    - `/api/auth/otp` - Send OTP for email authentication
+    - `/api/auth/otp/verify` - Verify OTP for email authentication
+    - `/api/auth/recover` - Send recovery OTP
+    - `/api/auth/recover/verify` - Verify recovery OTP
     
     ## Base URLs
     - Development: `http://localhost:3000`
@@ -130,6 +142,176 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/auth/otp:
+    post:
+      tags:
+        - Authentication
+      summary: Send OTP for Email Authentication
+      description: Send OTP code to user's email for authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: User email address
+                  example: "user@example.com"
+      responses:
+        '200':
+          description: OTP sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "OTP sent to email"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/auth/otp/verify:
+    post:
+      tags:
+        - Authentication
+      summary: Verify OTP for Email Authentication
+      description: Verify OTP code and authenticate user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otp
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: User email address
+                  example: "user@example.com"
+                otp:
+                  type: string
+                  description: OTP code received via email
+                  example: "123456"
+      responses:
+        '200':
+          description: OTP verification successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Email authentication successful"
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    description: JWT token for authentication
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/auth/recover:
+    post:
+      tags:
+        - Authentication
+      summary: Send Recovery OTP
+      description: Send OTP code to recover deleted account
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: User email address
+                  example: "user@example.com"
+      responses:
+        '200':
+          description: Recovery OTP sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "OTP sent to email"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/auth/recover/verify:
+    post:
+      tags:
+        - Authentication
+      summary: Verify Recovery OTP
+      description: Verify recovery OTP and restore deleted account
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otp
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: User email address
+                  example: "user@example.com"
+                otp:
+                  type: string
+                  description: Recovery OTP code received via email
+                  example: "123456"
+      responses:
+        '200':
+          description: Account recovered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Account recovered successfully"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /api/recipes/search:
     get:
       tags:
@@ -225,6 +407,51 @@ paths:
                     example: 5
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/recipes/bulk:
+    post:
+      tags:
+        - Recipes
+      summary: Get Recipes by IDs
+      description: Get multiple recipes by their IDs (No Authentication Required)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - recipeIds
+              properties:
+                recipeIds:
+                  type: array
+                  items:
+                    type: integer
+                  description: Array of recipe IDs
+                  example: [12345, 67890, 11111]
+      responses:
+        '200':
+          description: Recipes retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Recipes retrieved successfully"
+                  recipes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Recipe'
+                  totalResults:
+                    type: integer
+                    example: 3
         '400':
           $ref: '#/components/responses/BadRequest'
         '500':
@@ -423,6 +650,427 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/ingredient-categories:
+    get:
+      tags:
+        - Ingredient Categories
+      summary: Get Ingredient Categories
+      description: Get all ingredient categories for the authenticated user
+      responses:
+        '200':
+          description: Categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ingredientCategory:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/IngredientCategory'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Ingredient Categories
+      summary: Add Ingredient Category
+      description: Add a new ingredient category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: Category name
+                  example: "Vegetables"
+                icon:
+                  type: string
+                  description: Category icon
+                  example: "🥕"
+      responses:
+        '200':
+          description: Category added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ingredientCategory:
+                    $ref: '#/components/schemas/IngredientCategory'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - Ingredient Categories
+      summary: Update Ingredient Category
+      description: Update an existing ingredient category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ingredientCategoryId
+                - name
+              properties:
+                ingredientCategoryId:
+                  type: string
+                  description: Category ID to update
+                  example: "64f1a2b3c4d5e6f7g8h9i0j1"
+                name:
+                  type: string
+                  description: Category name
+                  example: "Fresh Vegetables"
+                icon:
+                  type: string
+                  description: Category icon
+                  example: "🥬"
+      responses:
+        '200':
+          description: Category updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ingredientCategory:
+                    $ref: '#/components/schemas/IngredientCategory'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Ingredient Categories
+      summary: Delete Ingredient Category
+      description: Delete an ingredient category and all its ingredients
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ingredientCategoryId
+              properties:
+                ingredientCategoryId:
+                  type: string
+                  description: Category ID to delete
+                  example: "64f1a2b3c4d5e6f7g8h9i0j1"
+      responses:
+        '200':
+          description: Category deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ingredientCategory:
+                    $ref: '#/components/schemas/IngredientCategory'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/meal-plans:
+    get:
+      tags:
+        - Meal Plans
+      summary: Get Meal Plans
+      description: Get all meal plans for the authenticated user
+      responses:
+        '200':
+          description: Meal plans retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mealPlans:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MealPlan'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Meal Plans
+      summary: Create Meal Plan
+      description: Create a new meal plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - date
+              properties:
+                name:
+                  type: string
+                  description: Meal plan name
+                  example: "Monday Healthy Breakfast"
+                recipeIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of recipe IDs
+                  example: ["recipe_123", "recipe_456"]
+                notes:
+                  type: string
+                  description: Additional notes
+                  example: "Focus on protein and vegetables"
+                date:
+                  type: string
+                  format: date-time
+                  description: Meal plan date
+                  example: "2025-10-11T08:00:00.000Z"
+      responses:
+        '200':
+          description: Meal plan created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mealPlan:
+                    $ref: '#/components/schemas/MealPlan'
+                  message:
+                    type: string
+                    example: "Meal plan created successfully"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - Meal Plans
+      summary: Update Meal Plan
+      description: Update an existing meal plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - mealPlanId
+                - name
+                - date
+              properties:
+                mealPlanId:
+                  type: string
+                  description: Meal plan ID to update
+                  example: "64f1a2b3c4d5e6f7g8h9i0j1"
+                name:
+                  type: string
+                  description: Meal plan name
+                  example: "Updated Monday Breakfast"
+                recipeIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of recipe IDs
+                  example: ["recipe_789", "recipe_012"]
+                notes:
+                  type: string
+                  description: Additional notes
+                  example: "Updated focus on nutrition"
+                date:
+                  type: string
+                  format: date-time
+                  description: Meal plan date
+                  example: "2025-10-11T09:00:00.000Z"
+      responses:
+        '200':
+          description: Meal plan updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mealPlan:
+                    $ref: '#/components/schemas/MealPlan'
+                  message:
+                    type: string
+                    example: "Meal plan updated successfully"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Meal Plans
+      summary: Delete Meal Plan
+      description: Delete an existing meal plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - mealPlanId
+              properties:
+                mealPlanId:
+                  type: string
+                  description: Meal plan ID to delete
+                  example: "64f1a2b3c4d5e6f7g8h9i0j1"
+      responses:
+        '200':
+          description: Meal plan deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Meal plan deleted successfully"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/notifications:
+    get:
+      tags:
+        - Notifications
+      summary: Get Notifications
+      description: Get all notifications for the authenticated user
+      responses:
+        '200':
+          description: Notifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notifications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    patch:
+      tags:
+        - Notifications
+      summary: Update Notification
+      description: Update notification read status (single or all)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - value
+              properties:
+                id:
+                  type: string
+                  description: Notification ID or 'all' for all notifications
+                  example: "64f1a2b3c4d5e6f7g8h9i0j1"
+                value:
+                  type: boolean
+                  description: Read status
+                  example: true
+      responses:
+        '200':
+          description: Notification updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Notification updated successfully"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Notifications
+      summary: Delete Notification
+      description: Delete notification(s)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  type: string
+                  description: Notification ID or 'all' for all notifications
+                  example: "64f1a2b3c4d5e6f7g8h9i0j1"
+      responses:
+        '200':
+          description: Notification deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Notification deleted successfully"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /api/favorites:
     get:
       tags:
@@ -590,6 +1238,28 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/profile/delete:
+    delete:
+      tags:
+        - Profile
+      summary: Delete Account
+      description: Soft delete the authenticated user's account
+      responses:
+        '200':
+          description: Account deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Account deleted successfully"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /api/shopping:
     get:
       tags:
@@ -754,14 +1424,14 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: |
-        JWT token obtained from Google authentication endpoint.
+        JWT token obtained from authentication endpoints.
         Include the token in the Authorization header as: `Bearer <token>`
 
   schemas:
     User:
       type: object
       properties:
-        id:
+        _id:
           type: string
           description: User ID
           example: "64f1a2b3c4d5e6f7g8h9i0j1"
@@ -800,6 +1470,10 @@ components:
           description: User role
           default: user
           example: "user"
+        isDeleted:
+          type: boolean
+          description: Account deletion status
+          example: false
         createdAt:
           type: string
           format: date-time
@@ -969,6 +1643,115 @@ components:
           description: Last update date
           example: "2024-01-15T10:30:00Z"
 
+    IngredientCategory:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Category ID
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+        userId:
+          type: string
+          description: User ID who owns this category
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+        name:
+          type: string
+          description: Category name
+          example: "Vegetables"
+        icon:
+          type: string
+          description: Category icon
+          example: "🥕"
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation date
+          example: "2024-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update date
+          example: "2024-01-15T10:30:00Z"
+
+    MealPlan:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Meal plan ID
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+        userId:
+          type: string
+          description: User ID who owns this meal plan
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+        name:
+          type: string
+          description: Meal plan name
+          example: "Monday Healthy Breakfast"
+        recipeIds:
+          type: array
+          items:
+            type: string
+          description: Array of recipe IDs
+          example: ["recipe_123", "recipe_456"]
+        notes:
+          type: string
+          description: Additional notes
+          example: "Focus on protein and vegetables"
+        date:
+          type: string
+          format: date-time
+          description: Meal plan date
+          example: "2025-10-11T08:00:00.000Z"
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation date
+          example: "2024-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update date
+          example: "2024-01-15T10:30:00Z"
+
+    Notification:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Notification ID
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+        userId:
+          type: string
+          description: User ID who owns this notification
+          example: "64f1a2b3c4d5e6f7g8h9i0j1"
+        title:
+          type: string
+          description: Notification title
+          example: "Ingredient Expiring Soon"
+        message:
+          type: string
+          description: Notification message
+          example: "Your tomatoes will expire in 2 days"
+        type:
+          type: string
+          description: Notification type
+          example: "expiry_reminder"
+        isRead:
+          type: boolean
+          description: Read status
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation date
+          example: "2024-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update date
+          example: "2024-01-15T10:30:00Z"
+
     ShoppingItem:
       type: object
       properties:
@@ -1058,6 +1841,12 @@ tags:
     description: Recipe search and management
   - name: Ingredients
     description: Ingredient and pantry management
+  - name: Ingredient Categories
+    description: Ingredient category management
+  - name: Meal Plans
+    description: Meal planning management
+  - name: Notifications
+    description: Notification system
   - name: Favorites
     description: User favorites management
   - name: Profile

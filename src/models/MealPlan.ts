@@ -13,11 +13,8 @@ const MealPlanSchema = new Schema(
       type: String,
       required: true,
     },
-    status: {
-      type: String,
-      enum: ['draft', 'active', 'completed', 'cancelled'],
-      default: 'draft',
-    },
+    recipeIds: [String],
+    notes: String,
     date: {
       type: Date,
       required: true,
@@ -26,7 +23,8 @@ const MealPlanSchema = new Schema(
   { timestamps: true }
 )
 
-const MealPlanModel = mongoose.models.mealPlan || mongoose.model('mealPlan', MealPlanSchema)
+const MealPlanModel =
+  mongoose.models.mealPlan || mongoose.model('mealPlan', MealPlanSchema)
 export default MealPlanModel
 
 export interface IMealPlan {
@@ -36,8 +34,7 @@ export interface IMealPlan {
 
   userId: string
   name: string
-  status: TMealPlanStatus
+  recipeIds: string[]
+  notes?: string
   date: Date
 }
-
-export type TMealPlanStatus = 'draft' | 'active' | 'completed' | 'cancelled'
