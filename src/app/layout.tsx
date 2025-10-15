@@ -1,7 +1,10 @@
+import Providers from '@/components/providers/Providers'
 import type { Metadata } from 'next'
+import { getServerSession } from 'next-auth'
 import { Geist, Geist_Mono } from 'next/font/google'
-import './globals.css'
 import { ReactNode } from 'react'
+import authOptions from './api/auth/[...nextauth]/authOptions'
+import './globals.css'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -18,17 +21,19 @@ export const metadata: Metadata = {
   description: 'CookMate - Your Personal Chef',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: ReactNode
 }>) {
+  const session = await getServerSession(authOptions)
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <Providers session={session}>{children}</Providers>
       </body>
     </html>
   )
