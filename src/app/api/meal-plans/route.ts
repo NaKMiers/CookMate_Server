@@ -1,8 +1,12 @@
 import { extractToken } from '@/lib/auth'
 import { jsonError, jsonSuccess } from '@/lib/common'
-import { connectDatabase } from '@/lib/database'
-import MealPlanModel from '@/models/MealPlan'
 import { NextRequest } from 'next/server'
+import {
+  createMealPlan,
+  deleteMealPlan,
+  getMealPlans,
+  updateMealPlan,
+} from './core'
 
 // MARK: [GET]: /api/meal-plans
 export async function GET(req: NextRequest) {
@@ -13,18 +17,11 @@ export async function GET(req: NextRequest) {
     const userId = token?.userId
     if (!userId) return jsonError('Unauthorized', 401)
 
-    await connectDatabase()
-
-    const mealPlans = await MealPlanModel.find({ userId })
-      .sort({
-        createdAt: -1,
-      })
-      .lean()
-
-    return jsonSuccess({ mealPlans })
-  } catch (error) {
+    const response = await getMealPlans(userId as string)
+    return jsonSuccess(response)
+  } catch (error: any) {
     console.error('Get meal plans error:', error)
-    return jsonError('Get meal plans error')
+    return jsonError(error.message)
   }
 }
 
@@ -37,21 +34,11 @@ export async function POST(req: NextRequest) {
     const userId = token?.userId
     if (!userId) return jsonError('Unauthorized', 401)
 
-    await connectDatabase()
-
-    const { name, recipeIds, notes, date } = await req.json()
-    const mealPlan = await MealPlanModel.create({
-      userId,
-      name,
-      recipeIds,
-      notes,
-      date,
-    })
-
-    return jsonSuccess({ mealPlan, message: 'Meal plan created successfully' })
-  } catch (error) {
+    const response = await createMealPlan(userId as string, await req.json())
+    return jsonSuccess(response)
+  } catch (error: any) {
     console.error('Create meal plan error:', error)
-    return jsonError('Create meal plan error')
+    return jsonError(error.message)
   }
 }
 
@@ -64,25 +51,11 @@ export async function PUT(req: NextRequest) {
     const userId = token?.userId
     if (!userId) return jsonError('Unauthorized', 401)
 
-    const { mealPlanId, name, recipeIds, notes, date } = await req.json()
-    console.log(mealPlanId, name, recipeIds, notes, date)
-    if (![mealPlanId, name, date].every(Boolean)) {
-      return jsonError('Missing required fields', 400)
-    }
-
-    await connectDatabase()
-
-    const mealPlan = await MealPlanModel.findByIdAndUpdate(
-      mealPlanId,
-      { name, recipeIds, notes, date },
-      { new: true }
-    )
-    if (!mealPlan) return jsonError('Meal plan not found', 404)
-
-    return jsonSuccess({ mealPlan, message: 'Meal plan updated successfully' })
-  } catch (error) {
+    const response = await updateMealPlan(userId as string, await req.json())
+    return jsonSuccess(response)
+  } catch (error: any) {
     console.error('Update meal plan error:', error)
-    return jsonError('Update meal plan error')
+    return jsonError(error.message)
   }
 }
 
@@ -95,17 +68,10 @@ export async function DELETE(req: NextRequest) {
     const userId = token?.userId
     if (!userId) return jsonError('Unauthorized', 401)
 
-    const { mealPlanId } = await req.json()
-    if (!mealPlanId) return jsonError('Missing required fields', 400)
-
-    await connectDatabase()
-
-    const mealPlan = await MealPlanModel.findByIdAndDelete(mealPlanId)
-    if (!mealPlan) return jsonError('Meal plan not found', 404)
-
-    return jsonSuccess({ message: 'Meal plan deleted successfully' })
-  } catch (error) {
+    const response = await deleteMealPlan(userId as string, await req.json())
+    return jsonSuccess(response)
+  } catch (error: any) {
     console.error('Delete meal plan error:', error)
-    return jsonError('Delete meal plan error')
+    return jsonError(error.message)
   }
 }

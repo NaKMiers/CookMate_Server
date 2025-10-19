@@ -20,6 +20,8 @@ info:
     
     **Authentication Required Endpoints:**
     - `/api` - API Welcome message
+    - `/api/ai` - AI Chat Assistant (OpenAI GPT-4o-mini with tool calling)
+    - `/api/admin/users` - Admin: User management (requires admin role)
     - `/api/ingredients` - All CRUD operations
     - `/api/ingredient-categories` - All CRUD operations
     - `/api/favorites` - All CRUD operations  
@@ -28,7 +30,6 @@ info:
     - `/api/shopping` - All CRUD operations
     - `/api/recipes/search` - Recipe search
     - `/api/recipes/today` - Today's recipes
-    - `/api/recipes/bulk` - Get recipes by IDs
     - `/api/meal-plans` - All CRUD operations
     - `/api/notifications` - All CRUD operations
     
@@ -38,6 +39,7 @@ info:
     - `/api/auth/otp/verify` - Verify OTP for email authentication
     - `/api/auth/recover` - Send recovery OTP
     - `/api/auth/recover/verify` - Verify recovery OTP
+    - `/api/recipes/bulk` - Get recipes by IDs
     
     ## Base URLs
     - Development: `http://localhost:3000`
@@ -1260,6 +1262,199 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/admin/users:
+    get:
+      tags:
+        - Admin
+      summary: Get All Users (Admin Only)
+      description: |
+        Get all users with pagination, search, and filtering options.
+        Requires admin role.
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+            example: 1
+        - name: search
+          in: query
+          description: Search query (searches in email, name, authType, role)
+          schema:
+            type: string
+            example: "john"
+        - name: sort
+          in: query
+          description: Sort field and order (format field|order, where order is 1 for asc or -1 for desc)
+          schema:
+            type: string
+            example: "updatedAt|-1"
+        - name: role
+          in: query
+          description: Filter by role
+          schema:
+            type: string
+            enum: [user, admin]
+            example: "user"
+      responses:
+        '200':
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  amount:
+                    type: integer
+                    description: Total number of users
+                    example: 50
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Admin
+      summary: Delete Users (Admin Only)
+      description: |
+        Soft delete users by IDs or emails. Requires admin role.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of user IDs to delete
+                  example: ["64f1a2b3c4d5e6f7g8h9i0j1"]
+                emails:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of user emails to delete
+                  example: ["user@example.com"]
+                value:
+                  type: boolean
+                  description: Set isDeleted flag (default true)
+                  default: true
+                  example: true
+      responses:
+        '200':
+          description: Users deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Users deleted successfully"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/ai:
+    post:
+      tags:
+        - AI Assistant
+      summary: Chat with CookMate AI Assistant
+      description: |
+        Send messages to CookMate AI Assistant for help with recipes, meal planning, ingredients, shopping lists, and more.
+        The AI can call various tools to help you manage your cooking activities.
+        
+        **Available AI Tools:**
+        - Profile: get_profile
+        - Favorites: get_all_favorites
+        - Meal Plans: get_all_meal_plans
+        - Ingredients: get_all_ingredients
+        - Ingredient Categories: get_all_ingredient_categories, add_ingredient_category
+        - Shopping List: get_shopping_list, add_shopping_item
+        
+        **Example Queries:**
+        - "Show my shopping list"
+        - "Add milk to shopping list"
+        - "What are my favorite recipes?"
+        - "Show my meal plans"
+        - "Create category Vegetables with icon 🥬"
+        - "Show my profile"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - messages
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        enum: [user, assistant, tool]
+                        description: Message role
+                      content:
+                        type: string
+                        description: Message content
+                      toolInvocations:
+                        type: object
+                        description: Tool invocations (for assistant messages with tool calls)
+                  description: Conversation history
+                  example:
+                    - role: user
+                      content: "Show my shopping list"
+      responses:
+        '200':
+          description: AI response generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        example: "assistant"
+                      content:
+                        type: string
+                        example: "Here's your shopping list..."
+                      toolInvocations:
+                        type: object
+                        description: Tool results if AI called tools
+                  usage:
+                    type: object
+                    properties:
+                      inputTokens:
+                        type: integer
+                      outputTokens:
+                        type: integer
+                      totalTokens:
+                        type: integer
+                  finishReason:
+                    type: string
+                    example: "stop"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /api/shopping:
     get:
       tags:
@@ -1303,10 +1498,10 @@ paths:
                   example: "Milk"
                 status:
                   type: string
-                  enum: [pending, completed]
+                  enum: [draft, active, completed, cancelled]
                   description: Item status
-                  default: pending
-                  example: "pending"
+                  default: draft
+                  example: "draft"
                 notes:
                   type: string
                   description: Additional notes
@@ -1353,7 +1548,7 @@ paths:
                   example: "Organic Milk"
                 status:
                   type: string
-                  enum: [pending, completed]
+                  enum: [draft, active, completed, cancelled]
                   description: Item status
                   example: "completed"
                 notes:
@@ -1769,9 +1964,9 @@ components:
           example: "Milk"
         status:
           type: string
-          enum: [pending, completed]
+          enum: [draft, active, completed, cancelled]
           description: Item status
-          example: "pending"
+          example: "draft"
         notes:
           type: string
           description: Additional notes
@@ -1835,6 +2030,10 @@ components:
 tags:
   - name: General
     description: General API endpoints
+  - name: Admin
+    description: Admin management endpoints (requires admin role)
+  - name: AI Assistant
+    description: AI-powered cooking assistant with tool calling
   - name: Authentication
     description: User authentication endpoints
   - name: Recipes

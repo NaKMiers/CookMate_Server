@@ -1,11 +1,7 @@
 import { extractToken } from '@/lib/auth'
 import { jsonError, jsonSuccess } from '@/lib/common'
-import { connectDatabase } from '@/lib/database'
-import UserModel from '@/models/User'
 import { NextRequest } from 'next/server'
-
-// Models: User
-import '@/models/User'
+import { deleteAccount } from '../core'
 
 // MARK: [DELETE]: /api/profile/delete
 export async function DELETE(req: NextRequest) {
@@ -16,13 +12,10 @@ export async function DELETE(req: NextRequest) {
     const userId = token?.userId
     if (!userId) return jsonError('Unauthorized', 401)
 
-    await connectDatabase()
-
-    await UserModel.findByIdAndUpdate(userId, { isDeleted: true })
-
-    return jsonSuccess({ message: 'Account deleted successfully' })
-  } catch (error) {
+    const response = await deleteAccount(userId as string)
+    return jsonSuccess(response)
+  } catch (error: any) {
     console.error('Delete account error:', error)
-    return jsonError('Something went wrong')
+    return jsonError(error.message)
   }
 }

@@ -1,12 +1,7 @@
 import { extractToken } from '@/lib/auth'
 import { jsonError, jsonSuccess } from '@/lib/common'
-import { connectDatabase } from '@/lib/database'
-import { getRecipesByIds } from '@/lib/spoonacular'
-import FavoriteItemModel from '@/models/FavoriteItem'
 import { NextRequest } from 'next/server'
-
-// Models: FavoriteItem
-import '@/models/FavoriteItem'
+import { addFavorite, deleteFavorite, getFavorites } from './core'
 
 // MARK: [GET]: /api/favorites
 export async function GET(req: NextRequest) {
@@ -17,23 +12,11 @@ export async function GET(req: NextRequest) {
     const userId = token?.userId
     if (!userId) return jsonError('Unauthorized', 401)
 
-    await connectDatabase()
-
-    const favoriteItems = await FavoriteItemModel.find({ userId }).sort({
-      createdAt: -1,
-    })
-
-    if (favoriteItems.length === 0)
-      return jsonSuccess({ recipes: [], totalResults: 0 })
-
-    const { recipes, totalResults } = await getRecipesByIds(
-      favoriteItems.map(item => item.recipe)
-    )
-
-    return jsonSuccess({ recipes, totalResults })
-  } catch (error) {
-    console.error('Favorites error:', error)
-    return jsonError('Something went wrong')
+    const response = await getFavorites(userId as string)
+    return jsonSuccess(response)
+  } catch (error: any) {
+    console.error('View favorites error:', error)
+    return jsonError(error.message)
   }
 }
 
@@ -46,20 +29,11 @@ export async function POST(req: NextRequest) {
     const userId = token?.userId
     if (!userId) return jsonError('Unauthorized', 401)
 
-    await connectDatabase()
-
-    const { recipeId } = await req.json()
-    if (!recipeId) return jsonError('Recipe ID is required', 400)
-
-    await FavoriteItemModel.create({
-      userId,
-      recipe: recipeId,
-    })
-
-    return jsonSuccess({ message: 'Favorite added successfully' })
-  } catch (error) {
-    console.error('Favorites error:', error)
-    return jsonError('Something went wrong')
+    const response = await addFavorite(userId as string, await req.json())
+    return jsonSuccess(response)
+  } catch (error: any) {
+    console.error('Add favorite error:', error)
+    return jsonError(error.message)
   }
 }
 
@@ -72,17 +46,10 @@ export async function DELETE(req: NextRequest) {
     const userId = token?.userId
     if (!userId) return jsonError('Unauthorized', 401)
 
-    await connectDatabase()
-
-    const { recipeId } = await req.json()
-    await FavoriteItemModel.deleteOne({
-      userId,
-      recipe: recipeId,
-    })
-
-    return jsonSuccess({ message: 'Favorite deleted successfully' })
-  } catch (error) {
-    console.error('Favorites error:', error)
-    return jsonError('Something went wrong')
+    const response = await deleteFavorite(userId as string, await req.json())
+    return jsonSuccess(response)
+  } catch (error: any) {
+    console.error('Delete favorite error:', error)
+    return jsonError(error.message)
   }
 }

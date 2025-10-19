@@ -1,11 +1,12 @@
 import { extractToken } from '@/lib/auth'
 import { jsonError, jsonSuccess } from '@/lib/common'
-import { connectDatabase } from '@/lib/database'
-import ShoppingItemModel from '@/models/ShoppingItem'
 import { NextRequest } from 'next/server'
-
-// Models: Shopping Item
-import '@/models/ShoppingItem'
+import {
+  addShoppingItem,
+  deleteShoppingItem,
+  getShoppingList,
+  updateShoppingItem,
+} from './core'
 
 // MARK: [GET]: /api/shopping
 export async function GET(req: NextRequest) {
@@ -16,16 +17,11 @@ export async function GET(req: NextRequest) {
     const userId = token?.userId
     if (!userId) return jsonError('Unauthorized', 401)
 
-    await connectDatabase()
-
-    const shoppingList = await ShoppingItemModel.find({ userId })
-      .sort({ createdAt: -1 })
-      .lean()
-
-    return jsonSuccess({ shoppingList })
-  } catch (error) {
+    const response = await getShoppingList(userId as string)
+    return jsonSuccess(response)
+  } catch (error: any) {
     console.error('Shopping error:', error)
-    return jsonError('Something went wrong')
+    return jsonError(error.message)
   }
 }
 
@@ -38,22 +34,11 @@ export async function POST(req: NextRequest) {
     const userId = token?.userId
     if (!userId) return jsonError('Unauthorized', 401)
 
-    await connectDatabase()
-
-    const { name, status, notes } = await req.json()
-    if (!name) return jsonError('Missing required fields', 400)
-
-    const shoppingItem = await ShoppingItemModel.create({
-      userId,
-      name,
-      status,
-      notes,
-    })
-
-    return jsonSuccess({ shoppingItem })
-  } catch (error) {
+    const response = await addShoppingItem(userId as string, await req.json())
+    return jsonSuccess(response)
+  } catch (error: any) {
     console.error('Shopping error:', error)
-    return jsonError('Something went wrong')
+    return jsonError(error.message)
   }
 }
 
@@ -66,23 +51,14 @@ export async function PUT(req: NextRequest) {
     const userId = token?.userId
     if (!userId) return jsonError('Unauthorized', 401)
 
-    await connectDatabase()
-
-    const { shoppingItemId, name, status, notes } = await req.json()
-    if (!shoppingItemId || !name)
-      return jsonError('Missing required fields', 400)
-
-    const shoppingItem = await ShoppingItemModel.findByIdAndUpdate(
-      shoppingItemId,
-      { name, status, notes },
-      { new: true, runValidators: true }
+    const response = await updateShoppingItem(
+      userId as string,
+      await req.json()
     )
-    if (!shoppingItem) return jsonError('Shopping item not found', 404)
-
-    return jsonSuccess({ shoppingItem })
-  } catch (error) {
+    return jsonSuccess(response)
+  } catch (error: any) {
     console.error('Shopping error:', error)
-    return jsonError('Something went wrong')
+    return jsonError(error.message)
   }
 }
 
@@ -95,20 +71,13 @@ export async function DELETE(req: NextRequest) {
     const userId = token?.userId
     if (!userId) return jsonError('Unauthorized', 401)
 
-    await connectDatabase()
-
-    const { shoppingItemId } = await req.json()
-    if (!shoppingItemId) return jsonError('Missing required fields', 400)
-
-    const deletedShoppingItem = await ShoppingItemModel.findByIdAndDelete(
-      shoppingItemId,
-      { new: true }
+    const response = await deleteShoppingItem(
+      userId as string,
+      await req.json()
     )
-    if (!deletedShoppingItem) return jsonError('Shopping item not found', 404)
-
-    return jsonSuccess({ message: 'Shopping item deleted successfully' })
-  } catch (error) {
+    return jsonSuccess(response)
+  } catch (error: any) {
     console.error('Shopping error:', error)
-    return jsonError('Something went wrong')
+    return jsonError(error.message)
   }
 }

@@ -1,13 +1,12 @@
 import { extractToken } from '@/lib/auth'
 import { jsonError, jsonSuccess } from '@/lib/common'
-import { connectDatabase } from '@/lib/database'
-import IngredientModel from '@/models/Ingredient'
-import IngredientCategoryModel from '@/models/IngredientCategory'
 import { NextRequest } from 'next/server'
-
-// Models: IngredientCategory, Ingredient
-import '@/models/Ingredient'
-import '@/models/IngredientCategory'
+import {
+  addIngredientCategory,
+  deleteIngredientCategory,
+  getIngredientCategories,
+  updateIngredientCategory,
+} from './core'
 
 // MARK: [GET]: /api/ingredients-categories
 export async function GET(req: NextRequest) {
@@ -18,18 +17,11 @@ export async function GET(req: NextRequest) {
     const userId = token?.userId
     if (!userId) return jsonError('Unauthorized', 401)
 
-    await connectDatabase()
-
-    const ingredientCategory = await IngredientCategoryModel.find({
-      userId,
-    })
-      .sort({ createdAt: -1 })
-      .lean()
-
-    return jsonSuccess({ ingredientCategory })
-  } catch (error) {
+    const response = await getIngredientCategories(userId as string)
+    return jsonSuccess(response)
+  } catch (error: any) {
     console.error('Ingredients Category error:', error)
-    return jsonError('Something went wrong')
+    return jsonError(error.message)
   }
 }
 
@@ -42,21 +34,14 @@ export async function POST(req: NextRequest) {
     const userId = token?.userId
     if (!userId) return jsonError('Unauthorized', 401)
 
-    await connectDatabase()
-
-    const { name, icon } = await req.json()
-    if (!name) return jsonError('Missing required fields', 400)
-
-    const ingredientCategory = await IngredientCategoryModel.create({
-      userId,
-      name: name.trim(),
-      icon,
-    })
-
-    return jsonSuccess({ ingredientCategory })
-  } catch (error) {
+    const response = await addIngredientCategory(
+      userId as string,
+      await req.json()
+    )
+    return jsonSuccess(response)
+  } catch (error: any) {
     console.error('Ingredients Category error:', error)
-    return jsonError('Something went wrong')
+    return jsonError(error.message)
   }
 }
 
@@ -69,25 +54,14 @@ export async function PUT(req: NextRequest) {
     const userId = token?.userId
     if (!userId) return jsonError('Unauthorized', 401)
 
-    await connectDatabase()
-
-    const { ingredientCategoryId, name, icon } = await req.json()
-    if (![ingredientCategoryId, name].every(Boolean))
-      return jsonError('Missing required fields', 400)
-
-    const ingredientCategory = await IngredientCategoryModel.findOneAndUpdate(
-      { _id: ingredientCategoryId, userId },
-      { name: name.trim(), icon },
-      { new: true }
+    const response = await updateIngredientCategory(
+      userId as string,
+      await req.json()
     )
-
-    if (!ingredientCategory)
-      return jsonError('Ingredients category not found', 404)
-
-    return jsonSuccess({ ingredientCategory })
-  } catch (error) {
+    return jsonSuccess(response)
+  } catch (error: any) {
     console.error('Ingredients Category error:', error)
-    return jsonError('Something went wrong')
+    return jsonError(error.message)
   }
 }
 
@@ -100,27 +74,13 @@ export async function DELETE(req: NextRequest) {
     const userId = token?.userId
     if (!userId) return jsonError('Unauthorized', 401)
 
-    await connectDatabase()
-
-    const { ingredientCategoryId } = await req.json()
-    if (!ingredientCategoryId) return jsonError('Missing required fields', 400)
-
-    const [_, ingredientCategory] = await Promise.all([
-      // delete all ingredients in the category
-      IngredientModel.deleteMany({ userId, categoryId: ingredientCategoryId }),
-      // delete ingredient category
-      IngredientCategoryModel.findOneAndDelete({
-        _id: ingredientCategoryId,
-        userId,
-      }),
-    ])
-
-    if (!ingredientCategory)
-      return jsonError('Ingredients categories not found', 404)
-
-    return jsonSuccess({ ingredientCategory })
-  } catch (error) {
+    const response = await deleteIngredientCategory(
+      userId as string,
+      await req.json()
+    )
+    return jsonSuccess(response)
+  } catch (error: any) {
     console.error('Ingredients Category error:', error)
-    return jsonError('Something went wrong')
+    return jsonError(error.message)
   }
 }

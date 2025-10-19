@@ -1,11 +1,7 @@
 import { extractToken } from '@/lib/auth'
 import { jsonError, jsonSuccess } from '@/lib/common'
-import { connectDatabase } from '@/lib/database'
-import UserModel from '@/models/User'
 import { NextRequest } from 'next/server'
-
-// Models: User
-import '@/models/User'
+import { getProfile, updateProfile } from './core'
 
 // MARK: [GET]: /api/profile
 export async function GET(req: NextRequest) {
@@ -16,15 +12,11 @@ export async function GET(req: NextRequest) {
     const userId = token?.userId
     if (!userId) return jsonError('Unauthorized', 401)
 
-    await connectDatabase()
-
-    const user = await UserModel.findById(userId)
-    if (!user) return jsonError('User not found', 404)
-
-    return jsonSuccess({ user })
-  } catch (error) {
+    const response = await getProfile(userId as string)
+    return jsonSuccess(response)
+  } catch (error: any) {
     console.error('Profile error:', error)
-    return jsonError('Profile error')
+    return jsonError(error.message)
   }
 }
 
@@ -37,22 +29,10 @@ export async function PUT(req: NextRequest) {
     const userId = token?.userId
     if (!userId) return jsonError('Unauthorized', 401)
 
-    await connectDatabase()
-
-    const { name, avatar, dietaryPreferences } = await req.json()
-    if (![name, avatar, dietaryPreferences].every(Boolean))
-      return jsonError('Missing required fields', 400)
-
-    const user = await UserModel.findByIdAndUpdate(
-      userId,
-      { name: name.trim(), avatar, dietaryPreferences },
-      { new: true }
-    )
-    if (!user) return jsonError('User not found', 404)
-
-    return jsonSuccess({ user })
-  } catch (error) {
+    const response = await updateProfile(userId as string, await req.json())
+    return jsonSuccess(response)
+  } catch (error: any) {
     console.error('Update profile error:', error)
-    return jsonError('Something went wrong')
+    return jsonError(error.message)
   }
 }

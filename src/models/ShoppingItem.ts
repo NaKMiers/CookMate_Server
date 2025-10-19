@@ -41,4 +41,15 @@ export interface IShoppingItem {
   notes?: string
 }
 
-export type TShoppingItemStatus = 'draft' | 'active' | 'completed' | 'cancelled'
+export enum EShoppingItemStatus {
+  DRAFT = 'draft',
+  ACTIVE = 'active',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+}
+
+export type TShoppingItemStatus =
+  | EShoppingItemStatus.DRAFT
+  | EShoppingItemStatus.ACTIVE
+  | EShoppingItemStatus.COMPLETED
+  | EShoppingItemStatus.CANCELLED
