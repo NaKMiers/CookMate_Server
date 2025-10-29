@@ -63,11 +63,9 @@ export default function ApiDocsPage() {
                 ⚠️ Important:
               </h4>
               <p className="text-xs text-yellow-800">
-                Most endpoints require authentication. Only{' '}
-                <code className="rounded bg-yellow-100 px-1">
-                  {baseUrl}/api/auth/google
-                </code>{' '}
-                works without authentication.
+                Most endpoints require authentication. All{' '}
+                <code className="rounded bg-yellow-100 px-1">/api/auth/*</code>{' '}
+                endpoints work without authentication.
               </p>
             </div>
           </div>

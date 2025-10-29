@@ -328,7 +328,7 @@ paths:
           schema:
             type: string
             example: "pasta"
-        - name: number
+        - name: limit
           in: query
           description: Number of recipes to return
           required: false
